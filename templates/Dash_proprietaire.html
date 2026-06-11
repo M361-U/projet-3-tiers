@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord — Propriétaire</title>
+ 
+  
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.9.0/dist/tabler-icons.min.css" />
+</head>
+<body>
+ 
+
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon"><i class="ti ti-home-check"></i></div>
+    Carnet d'Entretien Partagé
+  </div>
+  <div class="topbar-right">
+    <div class="avatar" style="background:#EEF3FC; color:#2155A3;">PR</div>
+    
+    <span class="user-name">{{ current_user.nom }}</span>
+    <a href="/logout" class="btn btn-outline" style="padding:6px 12px; font-size:12px;">
+      <i class="ti ti-logout"></i> Déconnexion
+    </a>
+  </div>
+</header>
+ 
+<main class="page-content">
+ 
+  <div class="page-header">
+    <h1>Vue d'ensemble des logements</h1>
+    <p>Gérez les incidents, les artisans et les logements depuis ce tableau de bord.</p>
+  </div>
+ 
+ 
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="label">Logements gérés</div>
+      <div class="value bleu">{{ stats.logements }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Incidents ouverts</div>
+      <div class="value orange">{{ stats.ouverts }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Incidents urgents</div>
+      <div class="value rouge">{{ stats.urgents }}</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Résolus ce mois</div>
+      <div class="value vert">{{ stats.resolus }}</div>
+    </div>
+  </div>
+ 
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">
+        <i class="ti ti-bell" style="color:var(--orange); margin-right:6px;"></i>
+        Nouvelles alertes
+      </span>
+    </div>
+    <div class="incident-list">
+      
+      {% for incident in alertes %}
+      <div class="incident-item">
+        <div class="incident-icone {{ incident.statut | lower }}">
+          <i class="ti ti-alert-circle"></i>
+        </div>
+        <div class="incident-info">
+          <div class="incident-titre">{{ incident.type_appareil }} · {{ incident.logement.adresse }}</div>
+          <div class="incident-date">Signalé le {{ incident.date_signalement }} par {{ incident.user.nom }}</div>
+        </div>
+        <span class="badge badge-{{ incident.statut | lower }}">{{ incident.statut }}</span>
+        <button class="btn btn-outline" style="font-size:12px; padding:5px 10px; flex-shrink:0;"
+                onclick="ouvrirModalStatut({{ incident.id_incident }}, '{{ incident.type_appareil }}')">
+          <i class="ti ti-edit"></i> Statut
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+ 
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Tous les incidents</span>
+      
+      <form action="/proprietaire/incidents" method="GET"
+            style="display:flex; gap:8px; align-items:center;">
+        <select name="logement_id" style="width:auto; font-size:12px; padding:5px 10px;">
+          <option value="">Tous les logements</option>
+          {% for logement in logements %}
+          <option value="{{ logement.id_logement }}">{{ logement.adresse }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline" style="font-size:12px; padding:5px 10px;">
+          <i class="ti ti-filter"></i> Filtrer
+        </button>
+      </form>
+    </div>
+ 
+    <div class="incident-list">
+      
+      {% for incident in incidents %}
+      <div class="incident-item">
+        <div class="incident-icone {{ incident.statut | lower }}">
+          <i class="ti ti-alert-circle"></i>
+        </div>
+        <div class="incident-info">
+          <div class="incident-titre">{{ incident.type_appareil }} — {{ incident.description }}</div>
+          <div class="incident-date">{{ incident.date_signalement }} · {{ incident.logement.adresse }} · {{ incident.user.nom }}</div>
+        </div>
+        <span class="badge badge-{{ incident.statut | lower }}">{{ incident.statut }}</span>
+        <button class="btn btn-outline" style="font-size:12px; padding:5px 10px; flex-shrink:0;"
+                onclick="ouvrirModalStatut({{ incident.id_incident }}, '{{ incident.type_appareil }}')">
+          <i class="ti ti-edit"></i> Statut
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+ 
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Contacts artisans</span>
+      <button class="btn btn-vert" style="font-size:12px; padding:6px 12px;"
+              onclick="ouvrirModal('modalArtisan')">
+        <i class="ti ti-plus"></i> Ajouter
+      </button>
+    </div>
+    <div class="artisan-grid">
+      
+      {% for artisan in artisans %}
+      <div class="artisan-card">
+        <div class="artisan-nom">{{ artisan.nom }}</div>
+        <div class="artisan-metier">{{ artisan.metier }}</div>
+        <div class="artisan-tel">
+          <i class="ti ti-phone" style="font-size:12px;"></i> {{ artisan.telephone }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+ 
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Mes logements</span>
+      <button class="btn btn-vert" style="font-size:12px; padding:6px 12px;"
+              onclick="ouvrirModal('modalLogement')">
+        <i class="ti ti-plus"></i> Ajouter
+      </button>
+    </div>
+    <div class="artisan-grid">
+     
+      {% for logement in logements %}
+      <div class="artisan-card">
+        <div class="artisan-nom">{{ logement.adresse }}</div>
+        <div class="artisan-metier">{{ logement.ville }} · {{ logement.type_bien }}</div>
+        <div class="artisan-tel" style="color:var(--orange);">
+          {{ logement.nb_incidents }} incident(s) ouvert(s)
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+ 
+</main>
+ 
+
+<div class="modal-overlay" id="modalStatut">
+  <div class="modal">
+    <h2><i class="ti ti-edit" style="color:var(--bleu); margin-right:6px;"></i>Modifier le statut</h2>
+    <p style="font-size:13px; color:var(--texte-second); margin-bottom:1rem;" id="modalStatutTitre"></p>
+    <form id="formStatut" action="/incident/statut" method="POST">
+      <input type="hidden" name="incident_id" id="statut-incident-id" />
+      <div class="field">
+        <label for="nouveau_statut">Nouveau statut</label>
+        <select id="nouveau_statut" name="statut" required>
+          <option value="Ouvert">Ouvert</option>
+          <option value="En cours">En cours</option>
+          <option value="Résolu">Résolu</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="commentaire">Commentaire (optionnel)</label>
+        <textarea id="commentaire" name="commentaire"
+                  placeholder="Ex : Artisan contacté, intervention prévue le..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="fermerModal('modalStatut')">Annuler</button>
+        <button type="submit" class="btn btn-vert">
+          <i class="ti ti-check"></i> Mettre à jour
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+ 
+
+<div class="modal-overlay" id="modalArtisan">
+  <div class="modal">
+    <h2><i class="ti ti-tool" style="color:var(--vert-fonce); margin-right:6px;"></i>Ajouter un artisan</h2>
+    <form action="/artisan/ajouter" method="POST">
+      <div class="field">
+        <label for="artisan_nom">Nom complet</label>
+        <input type="text" id="artisan_nom" name="nom" placeholder="Ex : M. Nguema" required />
+      </div>
+      <div class="field">
+        <label for="artisan_metier">Métier / Spécialité</label>
+        <input type="text" id="artisan_metier" name="metier" placeholder="Ex : Plombier" required />
+      </div>
+      <div class="field">
+        <label for="artisan_tel">Téléphone</label>
+        <input type="tel" id="artisan_tel" name="telephone" placeholder="Ex : 06 01 02 03 04" required />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="fermerModal('modalArtisan')">Annuler</button>
+        <button type="submit" class="btn btn-vert">
+          <i class="ti ti-check"></i> Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+ 
+
+<div class="modal-overlay" id="modalLogement">
+  <div class="modal">
+    <h2><i class="ti ti-building" style="color:var(--bleu); margin-right:6px;"></i>Ajouter un logement</h2>
+    <form action="/logement/ajouter" method="POST">
+      <div class="field">
+        <label for="adresse">Adresse</label>
+        <input type="text" id="adresse" name="adresse" placeholder="Ex : 12 rue de la Paix" required />
+      </div>
+      <div class="field">
+        <label for="ville">Ville</label>
+        <input type="text" id="ville" name="ville" placeholder="Ex : Libreville" required />
+      </div>
+      <div class="field">
+        <label for="type_bien">Type de bien</label>
+        <select id="type_bien" name="type_bien">
+          <option>Appartement</option>
+          <option>Studio</option>
+          <option>Maison</option>
+          <option>Villa</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="fermerModal('modalLogement')">Annuler</button>
+        <button type="submit" class="btn btn-vert">
+          <i class="ti ti-check"></i> Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+ 
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
