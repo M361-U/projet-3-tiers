@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — Carnet d'Entretien Partagé</title>
+ 
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.9.0/dist/tabler-icons.min.css" />
+</head>
+<body>
+ 
+<main class="login-page">
+  <div class="login-card">
+ 
+    <div class="login-logo">
+      <div class="logo-icon"><i class="ti ti-home-check"></i></div>
+      <h1>Carnet d'Entretien Partagé</h1>
+      <p>Connectez-vous à votre espace</p>
+    </div>
+ 
+    
+    <p style="font-size:12px; color:var(--texte-second); margin-bottom:8px;">Vous êtes :</p>
+    <div class="role-select">
+      <button class="role-btn actif" onclick="choisirRole(this, 'locataire')" type="button">
+        <i class="ti ti-user"></i> Locataire
+      </button>
+      <button class="role-btn" onclick="choisirRole(this, 'proprietaire')" type="button">
+        <i class="ti ti-building"></i> Propriétaire
+      </button>
+    </div>
+ 
+    
+    <form action="/login" method="POST">
+      <input type="hidden" name="role" id="role-input" value="locataire" />
+ 
+      <div class="login-field">
+        <label for="email">
+          <i class="ti ti-mail" style="font-size:13px; vertical-align:-1px;"></i>
+          Adresse e-mail
+        </label>
+        <input type="email" id="email" name="email"
+               placeholder="utilisateur@inptic.local"
+               required autocomplete="email" />
+      </div>
+ 
+      <div class="login-field">
+        <label for="password">
+          <i class="ti ti-lock" style="font-size:13px; vertical-align:-1px;"></i>
+          Mot de passe
+        </label>
+        <input type="password" id="password" name="password"
+               placeholder="••••••••"
+               required autocomplete="current-password" />
+      </div>
+ 
+     
+      {% if error %}
+      <div style="color:var(--rouge); font-size:12px; margin-bottom:0.75rem;
+                  padding:8px 12px; background:var(--rouge-clair); border-radius:var(--radius-sm);">
+        {{ error }}
+      </div>
+      {% endif %}
+ 
+      <button type="submit" class="btn btn-vert login-submit">
+        <i class="ti ti-login"></i> Se connecter
+      </button>
+    </form>
+ 
+    <div class="login-footer">
+      Accès réservé aux résidents et gestionnaires enregistrés.
+    </div>
+ 
+  </div>
+</main>
+ 
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
